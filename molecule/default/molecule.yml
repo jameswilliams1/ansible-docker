@@ -1,0 +1,42 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+lint:
+  name: yamllint
+platforms:
+  - name: Ubuntu-18.04-LTS
+    box: ubuntu/bionic64
+    memory: 2048
+    cpus: 2
+    interfaces:
+      - network_name: private_network
+        type: static
+        ip: 192.168.100.10
+        auto_config: true
+    options:
+      append_platform_to_host_name: false
+
+  - name: Debian-Buster
+    box: debian/buster64
+    memory: 2048
+    cpus: 2
+    interfaces:
+      - network_name: private_network
+        type: static
+        ip: 192.168.100.11
+        auto_config: true
+    options:
+      append_platform_to_host_name: false
+
+provisioner:
+  name: ansible
+  lint:
+    name: ansible-lint
+verifier:
+  name: testinfra
+  lint:
+    name: flake8

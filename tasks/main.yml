@@ -1,0 +1,50 @@
+---
+# tasks file for docker
+- block:
+    - name: Ensure old Docker packages are removed
+      apt:
+        name: "{{ item }}"
+        state: absent
+        autoremove: true
+      loop: "{{ docker_old_apt_packages | flatten(1) }}"
+
+    - name: Ensure Docker apt key is present
+      apt_key:
+        url: "{{ docker_apt_repo_key }}"
+
+    - name: Ensure Docker apt repo is present
+      apt_repository:
+        repo: "{{ docker_apt_repo }}"
+
+    - name: Ensure Docker packages are installed
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: true
+      loop: "{{ docker_apt_packages | flatten(1) }}"
+
+    - name: Ensure user(s) are in docker group
+      user:
+        name: "{{ item }}"
+        groups: docker
+      loop: "{{ docker_users }}"
+
+    - name: Ensure Docker-compose is installed
+      get_url:
+        url: "{{ compose_download_url }}"
+        dest: "{{ compose_install_directory }}"
+        mode: "0755"
+
+    - name: Ensure Docker-Compose symlink exists
+      file:
+        state: link
+        src: "{{ compose_install_directory }}"
+        dest: /usr/bin/docker-compose
+
+    - name: Ensure bash completion scripts are installed
+      get_url:
+        url: "{{ item.url }}"
+        dest: "/etc/bash_completion.d/{{ item.name }}.sh"
+        mode: "0755"
+      loop: "{{ bash_completion_scripts }}"
+  become: true
